@@ -1,0 +1,99 @@
+import re
+
+# ---------------------------
+# Abbreviation dictionary
+# ---------------------------
+abbreviations = {
+    "plz": "please",
+    "pls": "please",
+    "sem": "semester",
+    "dept": "department",
+    "cse": "computer science",
+    "ece": "electronics",
+    "mech": "mechanical",
+    "ct": "class test",
+    "midsem": "mid semester"
+}
+
+# ---------------------------
+# Intent keywords
+# ---------------------------
+intent_keywords = {
+    "exam_schedule": ["exam", "date", "schedule", "test"],
+    "admission": ["admission", "apply", "eligibility"],
+    "fees": ["fees", "fee", "payment"],
+    "result": ["result", "marks", "grade"],
+    "attendance": ["attendance", "present", "absent"],
+    "timetable": ["timetable", "schedule", "routine"]
+}
+
+# ---------------------------
+# Text Cleaning & Normalization
+# ---------------------------
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", "", text)  # remove special chars
+    words = text.split()
+
+    normalized_words = []
+    for word in words:
+        if word in abbreviations:
+            normalized_words.extend(abbreviations[word].split())
+        else:
+            normalized_words.append(word)
+
+    return " ".join(normalized_words)
+
+# ---------------------------
+# Intent Detection
+# ---------------------------
+def detect_intent(text):
+    for intent, keywords in intent_keywords.items():
+        for keyword in keywords:
+            if keyword in text:
+                return intent
+    return "unknown"
+
+# ---------------------------
+# Entity Extraction
+# ---------------------------
+def extract_entities(text):
+    entities = {}
+
+    # Semester
+    sem_match = re.search(r"semester\s*(\d+)", text)
+    if sem_match:
+        entities["semester"] = int(sem_match.group(1))
+
+    # Department
+    if "computer science" in text:
+        entities["department"] = "CSE"
+    elif "electronics" in text:
+        entities["department"] = "ECE"
+    elif "mechanical" in text:
+        entities["department"] = "MECH"
+
+    return entities
+
+# ---------------------------
+# Main Preprocessing Function
+# ---------------------------
+def preprocess_query(query):
+    cleaned_text = clean_text(query)
+    intent = detect_intent(cleaned_text)
+    entities = extract_entities(cleaned_text)
+
+    return {
+        "original_query": query,
+        "cleaned_text": cleaned_text,
+        "intent": intent,
+        "entities": entities
+    }
+
+# ---------------------------
+# Example Usage
+# ---------------------------
+query = "Sir plz tell exam date for sem 3 cse!!!"
+output = preprocess_query(query)
+
+print(output)
