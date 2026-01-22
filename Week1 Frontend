@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Support Bot | Nagpur Institute</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        #chat-window { height: 500px; scroll-behavior: smooth; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .bot-msg { border-bottom-left-radius: 2px; }
+        .user-msg { border-bottom-right-radius: 2px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+    <div class="container mx-auto max-w-4xl py-10 px-4">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-indigo-900 mb-2">Campus Assistant</h1>
+            <p class="text-gray-600">Your 24/7 guide to Nagpur Institute of Technology</p>
+        </div>
+
+        <div class="glass-morphism rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-indigo-100">
+            
+            <div id="chat-window" class="p-6 overflow-y-auto flex flex-col gap-4 bg-white/50">
+                <div class="bot-msg self-start bg-indigo-600 text-white p-4 rounded-2xl shadow-md max-w-[80%]">
+                    <p class="text-sm font-semibold mb-1">🤖 InstiBot</p>
+                    Hello! I'm your college assistant. You can ask me about admissions, fees, hostel, or exam schedules. How can I help you today?
+                </div>
+            </div>
+
+            <div class="px-6 py-3 flex flex-wrap gap-2 border-t border-gray-100 bg-white/30">
+                <button onclick="quickAsk('Fees')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-600 hover:text-white transition">💰 Annual Fees</button>
+                <button onclick="quickAsk('Timings')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-600 hover:text-white transition">🕒 College Hours</button>
+                <button onclick="quickAsk('Placement')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-600 hover:text-white transition">🚀 Placements</button>
+                <button onclick="quickAsk('Hostel')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-600 hover:text-white transition">🏠 Hostel Info</button>
+            </div>
+
+            <div class="p-4 bg-white border-t border-gray-200">
+                <div class="flex items-center gap-3">
+                    <input type="text" id="user-input" 
+                        class="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" 
+                        placeholder="Ask me anything...">
+                    <button onclick="processInput()" class="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition shadow-lg">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-center text-gray-400 text-sm mt-6">Hackathon Project © 2024 | Built for Nagpur Institute</p>
+    </div>
+
+    <script>
+        // FAQ DATA (Semantic groups mapped to answers)
+        const FAQ_LOGIC = [
+            { keys: ["timing", "hour", "open", "close", "schedule"], ans: "College timings are 9 AM to 5 PM." },
+            { keys: ["office", "admin", "clerk"], ans: "Office hours are 10 AM to 4 PM for administrative work." },
+            { keys: ["admission", "entry", "apply", "join"], ans: "Admissions are based on merit and entrance exam scores." },
+            { keys: ["fees", "tuition", "payment", "cost", "price", "money"], ans: "Annual fees are ₹85,000 per year." },
+            { keys: ["scholarship", "financial", "aid", "discount"], ans: "Government and merit-based scholarships are available for eligible students." },
+            { keys: ["library", "book", "read"], ans: "The Library is open from 9 AM to 8 PM on all working days." },
+            { keys: ["hostel", "stay", "accommodation", "dorm"], ans: "Hostel facility is available for both boys and girls with 24/7 security." },
+            { keys: ["placement", "job", "career", "salary", "recruit"], ans: "Placement training starts from the 3rd year. Major tech companies visit annually." },
+            { keys: ["contact", "phone", "mobile", "number", "call"], ans: "You can reach the office at +91 9876543210." },
+            { keys: ["email", "mail", "id"], ans: "Our official email is info@institute.edu." },
+            { keys: ["address", "location", "where", "place", "nagpur"], ans: "The institute is located in Nagpur, Maharashtra." },
+            { keys: ["course", "degree", "branch", "stream"], ans: "We offer Engineering (BE/BTech), Diploma, and Management (MBA) courses." },
+            { keys: ["attendance", "present", "shortage"], ans: "A minimum of 75% attendance is mandatory to appear for exams." },
+            { keys: ["exam", "test", "result", "semester"], ans: "University exams are conducted semester-wise twice a year." },
+            { keys: ["transport", "bus", "van", "travel"], ans: "College bus facility is available from all major routes in the city." }
+        ];
+
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+
+        function processInput() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            // Bot Response
+            setTimeout(() => {
+                const response = findResponse(text);
+                addMessage(response, 'bot');
+            }, 500);
+        }
+
+        function findResponse(input) {
+            const query = input.toLowerCase();
+            
+            // Check for match in semantic groups
+            const match = FAQ_LOGIC.find(item => 
+                item.keys.some(key => query.includes(key))
+            );
+
+            return match ? match.ans : "I'm not sure about that. Try asking about fees, admissions, or placements!";
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            if (sender === 'user') {
+                div.className = "user-msg self-end bg-indigo-100 text-indigo-900 p-4 rounded-2xl shadow-sm max-w-[80%] border border-indigo-200";
+                div.innerHTML = `<p class="text-xs font-bold mb-1">You</p>${text}`;
+            } else {
+                div.className = "bot-msg self-start bg-indigo-600 text-white p-4 rounded-2xl shadow-md max-w-[80%]";
+                div.innerHTML = `<p class="text-xs font-bold mb-1 text-indigo-200">🤖 InstiBot</p>${text}`;
+            }
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function quickAsk(category) {
+            userInput.value = category;
+            processInput();
+        }
+
+        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") processInput(); });
+    </script>
+</body>
+</html>
