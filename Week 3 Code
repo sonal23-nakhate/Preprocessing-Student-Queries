@@ -1,0 +1,69 @@
+def chatbot():
+    print("Welcome to Synonym-Aware FAQ Bot")
+    print("Type 'exit' to quit\n")
+
+    faq_keywords = {
+        "timings": ["timing", "time", "hours", "schedule"],
+        "fees": ["fees", "fee", "tuition", "payment", "cost"],
+        "admission": ["admission", "admit", "apply", "enroll"],
+        "library": ["library", "books", "reading"],
+        "hostel": ["hostel", "mess", "room", "accommodation"],
+        "contact": ["contact", "phone", "number", "call"],
+        "email": ["email", "mail"],
+        "placement": ["placement", "job", "career"],
+        "attendance": ["attendance", "present", "presence"],
+        "exam": ["exam", "test", "assessment"]
+    }
+
+    while True:
+        user = input("You: ").lower()
+
+        if user == "exit":
+            print("Bot: Thank you! 😊")
+            break
+
+        found = False
+
+        for category, keywords in faq_keywords.items():
+            for word in keywords:
+                if word in user:
+                    found = True
+
+                    if category == "timings":
+                        print("Bot: College timings are 9 AM to 5 PM.")
+
+                    elif category == "fees":
+                        print("Bot: Annual tuition fees are ₹85,000.")
+
+                    elif category == "admission":
+                        print("Bot: Admission is based on merit and entrance exam.")
+
+                    elif category == "library":
+                        print("Bot: Library is open from 9 AM to 8 PM.")
+
+                    elif category == "hostel":
+                        print("Bot: Hostel facility is available for students.")
+
+                    elif category == "contact":
+                        print("Bot: Contact number is 9876543210.")
+
+                    elif category == "email":
+                        print("Bot: Email ID is info@institute.edu")
+
+                    elif category == "placement":
+                        print("Bot: Placement training starts from third year.")
+
+                    elif category == "attendance":
+                        print("Bot: Minimum 75% attendance is mandatory.")
+
+                    elif category == "exam":
+                        print("Bot: Exams are conducted semester-wise.")
+
+                    break
+
+            if found:
+                break
+
+        if not found:
+            print("Bot: Sorry, I couldn't understand your question.")
+chatbot()
