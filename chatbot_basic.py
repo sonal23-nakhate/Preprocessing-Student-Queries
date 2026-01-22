@@ -1,0 +1,45 @@
+def chatbot():
+    print("Welcome to Institute FAQ Bot")
+    print("Type 'exit' to end the chat\n")
+    
+    while True:
+        user = input("You: ").lower()
+        
+        if user == "exit":
+            print("Bot: Thank you! Have a nice day 😊")
+            break
+        elif "timing" in user:
+            print("Bot: College timings are 9 AM to 5 PM.")
+        elif "office" in user:
+            print("Bot: Office hours are 10 AM to 4 PM.")
+        elif "admission" in user:
+            print("Bot: Admissions are based on merit and entrance exam.")
+        elif "fees" in user:
+            print("Bot: Annual fees are ₹85,000.")
+        elif "scholarship" in user:
+            print("Bot: Government and merit-based scholarships are available.")
+        elif "library" in user:
+            print("Bot: Library is open from 9 AM to 8 PM.")
+        elif "hostel" in user:
+            print("Bot: Hostel facility is available for boys and girls.")
+        elif "placement" in user:
+            print("Bot: Placement training is provided from third year.")
+        elif "contact" in user or "phone" in user:
+            print("Bot: Contact number is 9876543210.")
+        elif "email" in user:
+            print("Bot: Email ID is info@institute.edu")
+        elif "address" in user:
+            print("Bot: Institute is located at Nagpur, Maharashtra.")
+        elif "course" in user:
+            print("Bot: We offer Engineering, Diploma, and Management courses.")
+        elif "attendance" in user:
+            print("Bot: Minimum 75% attendance is mandatory.")
+        elif "exam" in user:
+            print("Bot: Exams are conducted semester-wise.")
+        elif "transport" in user:
+            print("Bot: Bus facility is available from major routes.")
+        else:
+            print("Bot: Sorry, I didn't understand that. Please ask institute-related questions.")
+
+if __name__ == "__main__":
+    chatbot()

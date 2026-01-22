@@ -1,0 +1,47 @@
+import string
+
+# stopwords list
+stopwords = ["is", "are", "the", "a", "an", "what", "how",
+             "when", "where", "why", "please", "tell", "me"]
+
+# spelling normalization dictionary
+spelling_corrections = {
+    "tym": "time",
+    "timing": "timings",
+    "collage": "college",
+    "admsn": "admission",
+    "adres": "address",
+    "phn": "phone",
+    "contct": "contact"
+}
+
+def preprocess(text):
+    # 1. lowercasing
+    text = text.lower()
+    
+    # 2. remove punctuation
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    
+    # 3. tokenization
+    tokens = text.split()
+    
+    # 4. spelling normalization
+    normalized_tokens = []
+    for word in tokens:
+        if word in spelling_corrections:
+            normalized_tokens.append(spelling_corrections[word])
+        else:
+            normalized_tokens.append(word)
+    
+    # 5. stopword removal
+    filtered_tokens = []
+    for word in normalized_tokens:
+        if word not in stopwords:
+            filtered_tokens.append(word)
+    
+    return filtered_tokens
+
+# TEST THE CODE
+if __name__ == "__main__":
+    query = "What are the collage tymings??"
+    print("Processed output:", preprocess(query))
