@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Assistant | Nagpur Institute</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        #chat-window { height: 500px; scroll-behavior: smooth; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen">
+
+    <div class="container mx-auto max-w-4xl py-10 px-4">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-indigo-900 mb-2">Smart Campus Bot</h1>
+            <p class="text-gray-600">Enhanced with NLP Preprocessing & Semantic Mapping</p>
+        </div>
+
+        <div class="glass-morphism rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-indigo-100">
+            <div id="chat-window" class="p-6 overflow-y-auto flex flex-col gap-4 bg-white/50">
+                <div class="self-start bg-indigo-600 text-white p-4 rounded-2xl shadow-md max-w-[80%]">
+                    <p class="text-xs font-semibold mb-1">🤖 Assistant</p>
+                    Hello! I'm now smarter. Try typing "What are the collage tymings?" and I'll still understand!
+                </div>
+            </div>
+
+            <div id="debug-info" class="px-6 py-2 bg-indigo-50 text-[10px] text-indigo-400 italic hidden">
+                Processing...
+            </div>
+
+            <div class="p-4 bg-white border-t border-gray-200">
+                <div class="flex items-center gap-3">
+                    <input type="text" id="user-input" 
+                        class="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" 
+                        placeholder="e.g., admsn process or collage tyming...">
+                    <button onclick="processInput()" class="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. YOUR ADDED PREPROCESSING DATA ---
+        const stopwords = ["is", "are", "the", "a", "an", "what", "how", "when", "where", "why", "please", "tell", "me"];
+        
+        const spelling_corrections = {
+            "tym": "time",
+            "timing": "timings",
+            "tyming": "timings",
+            "tymings": "timings",
+            "collage": "college",
+            "admsn": "admission",
+            "adres": "address",
+            "phn": "phone",
+            "contct": "contact"
+        };
+
+        // --- 2. FAQ KNOWLEDGE BASE ---
+        const FAQ_DATA = [
+            { keys: ["timings", "time", "hour", "open", "close"], ans: "College timings are 9 AM to 5 PM." },
+            { keys: ["admission", "apply", "join"], ans: "Admissions are based on merit and entrance exams." },
+            { keys: ["fees", "tuition", "payment", "cost"], ans: "Annual fees are ₹85,000." },
+            { keys: ["scholarship", "financial"], ans: "Government and merit-based scholarships are available." },
+            { keys: ["hostel", "accommodation", "dorm"], ans: "Hostel facility is available for both boys and girls." },
+            { keys: ["placement", "job", "career"], ans: "Placement training is provided from the third year." },
+            { keys: ["contact", "phone", "number"], ans: "Contact us at 9876543210." },
+            { keys: ["address", "location", "nagpur"], ans: "Institute is located at Nagpur, Maharashtra." }
+        ];
+
+        // --- 3. PREPROCESSING FUNCTION (The JS version of your Python code) ---
+        
+        function preprocess(text) {
+            // 1. Lowercasing & 2. Remove Punctuation
+            let cleanText = text.toLowerCase().replace(/[^\w\s]/gi, '');
+            
+            // 3. Tokenization
+            let tokens = cleanText.split(/\s+/);
+
+            // 4. Spelling Normalization
+            let normalized = tokens.map(word => spelling_corrections[word] || word);
+
+            // 5. Stopword Removal
+            let filtered = normalized.filter(word => !stopwords.includes(word));
+
+            return filtered;
+        }
+
+        // --- 4. CHAT HANDLER ---
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const debugInfo = document.getElementById('debug-info');
+
+        function processInput() {
+            const rawText = userInput.value.trim();
+            if (!rawText) return;
+
+            addMessage(rawText, 'user');
+            userInput.value = '';
+
+            // Show Preprocessing Debug (Great for Hackathon Points!)
+            const processedTokens = preprocess(rawText);
+            debugInfo.innerText = "Processed as: " + JSON.stringify(processedTokens);
+            debugInfo.classList.remove('hidden');
+
+            setTimeout(() => {
+                const response = findMatch(processedTokens);
+                addMessage(response, 'bot');
+            }, 600);
+        }
+
+        function findMatch(tokens) {
+            // Search through FAQ_DATA for any token matching the keys
+            for (let item of FAQ_DATA) {
+                if (item.keys.some(key => tokens.includes(key))) {
+                    return item.ans;
+                }
+            }
+            return "Sorry, I didn't understand. Try asking about 'admissions', 'fees', or 'timings'.";
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            if (sender === 'user') {
+                div.className = "self-end bg-indigo-100 text-indigo-900 p-4 rounded-2xl shadow-sm max-w-[80%] border border-indigo-200";
+                div.innerHTML = `<p class="text-[10px] font-bold mb-1 opacity-50">YOU</p>${text}`;
+            } else {
+                div.className = "self-start bg-indigo-600 text-white p-4 rounded-2xl shadow-md max-w-[80%]";
+                div.innerHTML = `<p class="text-[10px] font-bold mb-1 text-indigo-200">🤖 INSTIBOT</p>${text}`;
+            }
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") processInput(); });
+    </script>
+</body>
+</html>
