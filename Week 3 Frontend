@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Support Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        #chat-window { height: 450px; scroll-behavior: smooth; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg">
+                <i class="fas fa-university text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Campus Assistant</h1>
+                <p class="text-sm text-slate-500">Synonym-Aware FAQ System</p>
+            </div>
+        </div>
+
+        <div class="glass-morphism rounded-3xl shadow-xl overflow-hidden flex flex-col border border-slate-200">
+            <div id="chat-window" class="p-6 overflow-y-auto flex flex-col gap-4 bg-slate-50/50">
+                <div class="self-start bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-slate-700">
+                    <p class="text-xs font-bold text-indigo-600 mb-1">BOT</p>
+                    Welcome to the <b>Synonym-Aware FAQ Bot</b>! <br>How can I help you with timings, fees, admissions, or placements today?
+                </div>
+            </div>
+
+            <div id="debug-info" class="px-6 py-1 bg-amber-50 text-[10px] text-amber-600 font-mono hidden"></div>
+
+            <div class="p-4 bg-white border-t border-slate-100">
+                <div class="flex items-center gap-2 bg-slate-100 rounded-2xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                    <input type="text" id="user-input" 
+                        class="flex-1 bg-transparent border-none py-2 text-slate-700 outline-none" 
+                        placeholder="Ask about tuition, exams, or hostel...">
+                    <button onclick="processInput()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl hover:bg-indigo-700 transition flex items-center justify-center shadow-md">
+                        <i class="fas fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION (Based on your latest Python logic) ---
+        const stopwords = ["is", "are", "the", "a", "an", "what", "how", "when", "where", "why", "please", "tell", "me"];
+        
+        const spelling_corrections = {
+            "tym": "time", "collage": "college", "admsn": "admission",
+            "adres": "address", "phn": "phone", "contct": "contact"
+        };
+
+        const faq_keywords = {
+            "timings": ["timing", "time", "hours", "schedule"],
+            "fees": ["fees", "fee", "tuition", "payment", "cost"],
+            "admission": ["admission", "admit", "apply", "enroll"],
+            "library": ["library", "books", "reading"],
+            "hostel": ["hostel", "mess", "room", "accommodation"],
+            "contact": ["contact", "phone", "number", "call"],
+            "email": ["email", "mail"],
+            "placement": ["placement", "job", "career"],
+            "attendance": ["attendance", "present", "presence"],
+            "exam": ["exam", "test", "assessment"],
+            "address: ["location", "address", "where", "located"]
+        };
+
+        const faq_responses = {
+            "timings": "College timings are 9 AM to 5 PM.",
+            "fees": "Annual tuition fees are ₹85,000.",
+            "admission": "Admission is based on merit and entrance exam.",
+            "library": "Library is open from 9 AM to 8 PM.",
+            "hostel": "Hostel facility is available for students.",
+            "contact": "Contact number is 9876543210.",
+            "email": "Email ID is info@institute.edu",
+            "placement": "Placement training starts from third year.",
+            "attendance": "Minimum 75% attendance is mandatory.",
+            "exam": "Exams are conducted semester-wise.",
+            "address": "Institute is located in Nagpur, Maharashtra."
+        };
+
+        // --- 2. PREPROCESSING ---
+        
+        function preprocess(text) {
+            let cleanText = text.toLowerCase().replace(/[^\w\s]/gi, '');
+            let tokens = cleanText.split(/\s+/);
+            let normalized = tokens.map(word => spelling_corrections[word] || word);
+            return normalized.filter(word => !stopwords.includes(word));
+        }
+
+        // --- 3. CORE LOGIC ---
+        function findResponse(userInputRaw) {
+            const tokens = preprocess(userInputRaw);
+            
+            // Show debug info for the hackathon presentation
+            const debugBox = document.getElementById('debug-info');
+            debugBox.classList.remove('hidden');
+            debugBox.innerText = `Tokens: [${tokens.join(", ")}]`;
+
+            // Matching logic from your updated backend
+            for (let [category, keywords] of Object.entries(faq_keywords)) {
+                for (let word of keywords) {
+                    if (tokens.includes(word)) {
+                        return faq_responses[category];
+                    }
+                }
+            }
+            return "Bot: Sorry, I couldn't understand your question.";
+        }
+
+        // --- 4. UI HANDLERS ---
+        const chatWindow = document.getElementById('chat-window');
+        const inputField = document.getElementById('user-input');
+
+        function processInput() {
+            const msg = inputField.value.trim();
+            if (!msg) return;
+
+            addBubble(msg, 'user');
+            inputField.value = '';
+
+            setTimeout(() => {
+                const response = findResponse(msg);
+                addBubble(response, 'bot');
+            }, 400);
+        }
+
+        function addBubble(text, sender) {
+            const div = document.createElement('div');
+            if (sender === 'user') {
+                div.className = "self-end bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-none shadow-md max-w-[85%] text-sm";
+                div.innerHTML = text;
+            } else {
+                div.className = "self-start bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm text-slate-700";
+                div.innerHTML = `<p class="text-[10px] font-bold text-indigo-600 mb-1">BOT</p>${text}`;
+            }
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        inputField.addEventListener("keypress", (e) => { if (e.key === "Enter") processInput(); });
+    </script>
+</body>
+</html>
