@@ -1,0 +1,15 @@
+
+const intentMap = {
+    "admission": ["apply", "admit", "join", "process"],
+    "fees": ["cost", "price", "pay", "tuition"],
+    "exams": ["test", "schedule", "paper", "exam"],
+    "hostel": ["stay", "room", "accommodation", "mess"],
+    "scholarship": ["financial aid", "discount", "scholarship"]
+};
+
+function classifyIntent(tokens) {
+    for (let [intent, keywords] of Object.entries(intentMap)) {
+        if (keywords.some(k => tokens.includes(k))) return intent;
+    }
+    return "unknown";
+}
