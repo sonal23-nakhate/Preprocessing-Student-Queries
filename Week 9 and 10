@@ -1,0 +1,15 @@
+let interactionLogs = [];
+
+function logInteraction(query, intent, entities) {
+    const logEntry = {
+        time: new Date().toLocaleTimeString(),
+        userQuery: query,
+        identifiedIntent: intent,
+        extractedEntities: entities
+    };
+    interactionLogs.push(logEntry);
+    
+    // Display in a "Control Panel" for the hackathon judges
+    document.getElementById('debug-console').innerHTML += 
+        `<br>> [${logEntry.time}] LOGGED: ${intent}`;
+}
