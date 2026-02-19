@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus Assistant v2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://abped-college-dashboard.s3.us-east-2.amazonaws.com/tted/college-backend/college/e5a33987-3d2a-446e-ac29-39c365912cf1.jpg'); 
+            background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh;
+        }
+        .bg-blur-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index: -1; }
+        #chat-window { height: 450px; scroll-behavior: smooth; }
+        .glass-container { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="bg-blur-overlay"></div>
+
+    <div class="w-full max-w-2xl z-10">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-indigo-600 p-3 rounded-2xl shadow-xl"><i class="fas fa-robot text-white text-2xl"></i></div>
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Campus Pro</h1>
+                    <p class="text-xs text-indigo-100 italic">Advanced Intent & Context Engine</p>
+                </div>
+            </div>
+            <button onclick="handover()" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition">
+                <i class="fas fa-headset mr-2"></i>TALK TO HUMAN
+            </button>
+        </div>
+
+        <div class="glass-container rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div id="chat-window" class="p-6 overflow-y-auto flex flex-col gap-4">
+                <div class="self-start bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-slate-700 border border-slate-100">
+                    <p class="text-[10px] font-bold text-indigo-600 mb-1 tracking-widest">SYSTEM READY</p>
+                    Hello! I'm your upgraded assistant. I now understand <b>Context</b> (try: "When is the exam?" then "For 3rd year") and <b>Entities</b> (try: "Fees for CS").
+                </div>
+            </div>
+
+            <div id="debug-info" class="px-6 py-2 bg-slate-800 text-[10px] text-green-400 font-mono hidden"></div>
+
+            <div class="p-4 bg-white border-t border-slate-100">
+                <div class="flex items-center gap-2 bg-slate-100 rounded-2xl px-4 py-1">
+                    <input type="text" id="user-input" class="flex-1 bg-transparent border-none py-3 text-slate-700 outline-none" placeholder="Ask about exams, courses, or fees...">
+                    <button onclick="processInput()" class="bg-indigo-600 text-white w-10 h-10 rounded-xl hover:bg-indigo-700 flex items-center justify-center shadow-md">
+                        <i class="fas fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & CONFIG ---
+        let context = { lastIntent: null, lastEntities: {} }; // Milestone 7: Context State
+        let logs = []; // Milestone 10: Analytics Log
+
+        const intentMap = {
+            "admission": { keywords: ["apply", "admit", "join", "admission"], response: "Admissions for 2026 are open. You need 60% in HSC." },
+            "fees": { keywords: ["fee", "cost", "price", "pay"], response: "The fees for {{course}} is ₹95,000 per year." },
+            "exam": { keywords: ["exam", "test", "paper"], response: "The {{year}} exams start on May 15th." },
+            "hostel": { keywords: ["hostel", "stay", "room", "accommodation"], response: "Hostel rooms are available for ₹40k/year including mess." }
+        };
+
+        const entities = {
+            courses: ["cs", "it", "mech", "civil", "entc"],
+            years: ["1st year", "2nd year", "3rd year", "final year", "sem 5", "sem 1"]
+        };
+
+        // --- CORE LOGIC ---
+
+        function extractEntities(text) {
+            let found = { course: null, year: null };
+            entities.courses.forEach(c => { if(text.includes(c)) found.course = c.toUpperCase(); });
+            entities.years.forEach(y => { if(text.includes(y)) found.year = y; });
+            return found;
+        }
+
+        function processInput() {
+            const input = document.getElementById('user-input').value.toLowerCase().trim();
+            if (!input) return;
+            addBubble(input, 'user');
+            document.getElementById('user-input').value = '';
+
+            // 1. NLP Preprocessing & Intent Classification (Milestone 5)
+            let detectedIntent = null;
+            for (let [intent, data] of Object.entries(intentMap)) {
+                if (data.keywords.some(k => input.includes(k))) {
+                    detectedIntent = intent;
+                    break;
+                }
+            }
+
+            // 2. Entity Extraction (Milestone 6)
+            const currentEntities = extractEntities(input);
+
+            // 3. Context Handling (Milestone 7)
+            // If user asks "For 3rd year" without an intent, use the previous intent
+            if (!detectedIntent && context.lastIntent && (currentEntities.year || currentEntities.course)) {
+                detectedIntent = context.lastIntent;
+            }
+
+            // Update Global Context
+            if (detectedIntent) context.lastIntent = detectedIntent;
+            if (currentEntities.course) context.lastEntities.course = currentEntities.course;
+            if (currentEntities.year) context.lastEntities.year = currentEntities.year;
+
+            // 4. Generate Response with Fallback (Milestone 8)
+            setTimeout(() => {
+                let finalResponse = "";
+                if (detectedIntent) {
+                    finalResponse = intentMap[detectedIntent].response;
+                    // Fill placeholders
+                    finalResponse = finalResponse.replace("{{course}}", context.lastEntities.course || "your course");
+                    finalResponse = finalResponse.replace("{{year}}", context.lastEntities.year || "upcoming");
+                } else {
+                    finalResponse = "I'm not sure about that. Would you like to check our FAQ or talk to an advisor?";
+                }
+
+                addBubble(finalResponse, 'bot');
+                logInteraction(input, detectedIntent, currentEntities); // Milestone 10
+            }, 600);
+        }
+
+        // --- ENHANCEMENTS ---
+
+        function logInteraction(query, intent, ent) {
+            const entry = { timestamp: new Date().toISOString(), query, intent, entities: ent };
+            logs.push(entry);
+            const debug = document.getElementById('debug-info');
+            debug.classList.remove('hidden');
+            debug.innerText = `LAST LOG: Intent[${intent || 'None'}] | Entities[${ent.course || ''} ${ent.year || ''}]`;
+            console.log("Analytics Log:", logs);
+        }
+
+        function handover() {
+            addBubble("System: Routing to Human Advisor... Please wait.", 'bot');
+            window.open("mailto:support@nagpurinstitute.edu?subject=Bot Handover Request");
+        }
+
+        function addBubble(text, sender) {
+            const chat = document.getElementById('chat-window');
+            const div = document.createElement('div');
+            div.className = sender === 'user' 
+                ? "self-end bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-none shadow-md max-w-[85%] text-sm"
+                : "self-start bg-white border border-slate-100 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] text-sm text-slate-700";
+            div.innerHTML = sender === 'bot' ? `<p class="text-[10px] font-bold text-indigo-600 mb-1">BOT</p>${text}` : text;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        document.getElementById('user-input').addEventListener("keypress", (e) => { if (e.key === "Enter") processInput(); });
+    </script>
+</body>
+</html>
