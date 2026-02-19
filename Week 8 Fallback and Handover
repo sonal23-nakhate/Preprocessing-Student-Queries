@@ -1,0 +1,10 @@
+function handleFallback() {
+    return `
+        <div class="fallback-ui">
+            <p>I'm not quite sure about that. Try:</p>
+            <button onclick="quickReply('Admission')">Admission Info</button>
+            <hr>
+            <p>Or talk to an advisor:</p>
+            <a href="mailto:admin@college.edu" class="handover-btn">Email Advisor</a>
+        </div>`;
+}
