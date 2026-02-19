@@ -1,0 +1,18 @@
+let chatContext = { lastIntent: null, lastEntities: {} };
+
+function getResponse(input) {
+    let currentIntent = classifyIntent(preprocess(input));
+    let currentEntities = extractEntities(input);
+
+    // Context Logic: If no intent found but we have a new entity, 
+    // reuse the old intent (e.g., "For 3rd year?")
+    if (currentIntent === "unknown" && chatContext.lastIntent) {
+        currentIntent = chatContext.lastIntent;
+    }
+
+    // Update global memory
+    chatContext.lastIntent = currentIntent;
+    Object.assign(chatContext.lastEntities, currentEntities);
+    
+    return generateSmartText(currentIntent, chatContext.lastEntities);
+}
