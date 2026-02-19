@@ -1,0 +1,13 @@
+// New Function to extract "Entities"
+function extractEntities(text) {
+    const courseList = ["cs", "it", "mechanical", "civil"];
+    const semesterList = ["sem 1", "sem 2", "sem 3", "sem 4", "sem 5"];
+    
+    let found = { course: null, sem: null };
+    courseList.forEach(c => { if(text.includes(c)) found.course = c.toUpperCase(); });
+    semesterList.forEach(s => { if(text.includes(s)) found.sem = s; });
+    return found;
+}
+
+// Example usage: "When is the SEM 5 CS exam?" 
+// Result: {intent: "exams", entities: {course: "CS", sem: "sem 5"}}
